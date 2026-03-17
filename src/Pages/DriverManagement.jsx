@@ -593,8 +593,8 @@ const DriverManagement = ({ view = 'directory' }) => {
     const tabs = [
         { id: 'directory', label: `Directory (${drivers.length})`, path: '/drivers' },
         { id: 'onboarding', label: `Onboarding (${onboardingList.length})`, path: '/drivers/onboarding' },
-        { id: 'earnings', label: 'Earnings & Ratings', path: '/drivers/earnings' },
-        { id: 'complaints', label: 'Complaints', path: '/drivers/complaints' },
+ 
+    
     ];
 
     if (selectedDriver) {

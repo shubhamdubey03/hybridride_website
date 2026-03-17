@@ -13,11 +13,38 @@ const Login = () => {
         setIsLoading(true);
         setError('');
 
+        // Trim inputs
+        const trimmedEmail = formData.email.trim();
+        const trimmedPassword = formData.password.trim();
+
+        // Validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!trimmedEmail) {
+            setError('Email is required');
+            setIsLoading(false);
+            return;
+        }
+        if (!emailRegex.test(trimmedEmail)) {
+            setError('Please enter a valid email address');
+            setIsLoading(false);
+            return;
+        }
+        if (!trimmedPassword) {
+            setError('Password is required');
+            setIsLoading(false);
+            return;
+        }
+        if (trimmedPassword.length < 6) {
+            setError('Password must be at least 6 characters long');
+            setIsLoading(false);
+            return;
+        }
+
         try {
             const response = await fetch('https://hybridride.onrender.com/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
             });
 
             const data = await response.json();
