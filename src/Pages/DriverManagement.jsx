@@ -5,11 +5,12 @@ import {
     MapPin, DollarSign, FileText, User, ChevronDown, Download,
     Plus, AlertTriangle, Star, X, Eye, ThumbsUp, ThumbsDown
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import axios from 'axios';
 
 // --- Mock Data ---
 
-const API_URL = 'https://hybridride.onrender.com/api/admin';
+// API configuration removed in favor of environment variables
 
 const mockRides = [
     { id: 'R-201', passenger: 'Rachel Zane', driver: 'Mike Ross', date: '2025-02-10', time: '10:00', from: 'Court House', to: 'Firm', amount: 15.00, status: 'completed' },
@@ -62,7 +63,7 @@ const DriverManagement = ({ view = 'directory' }) => {
     const [onboardingList, setOnboardingList] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
-    const [isLoading, setIsLoading] = useState(true);
+    // const [isLoading, setIsLoading] = useState(true); // Removed as unused
 
     // Modals & Selection State
     const [isAddDriverModalOpen, setIsAddDriverModalOpen] = useState(false);
@@ -78,14 +79,13 @@ const DriverManagement = ({ view = 'directory' }) => {
     const fetchDrivers = async () => {
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${API_URL}/drivers`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/drivers`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            const data = await response.json();
 
-            if (data.success) {
+            if (res.data.success) {
                 // Transform data for UI
-                const allDrivers = data.data.map(d => ({
+                const allDrivers = res.data.data.map(d => ({
                     id: d._id,
                     name: d.name,
                     phone: d.phone,
@@ -99,7 +99,7 @@ const DriverManagement = ({ view = 'directory' }) => {
                     avatar: d.profileImage || `https://ui-avatars.com/api/?name=${d.name}&background=random`,
                     driverDetails: d.driverDetails,
                     documents: d.driverDetails?.documents ? Object.fromEntries(
-                        Object.entries(d.driverDetails.documents).map(([k, v]) => [k, `https://hybridride.onrender.com${v}`])
+                        Object.entries(d.driverDetails.documents).map(([k, v]) => [k, `${import.meta.env.VITE_API_BASE_URL}${v}`])
                     ) : {}
                 }));
 
@@ -109,7 +109,7 @@ const DriverManagement = ({ view = 'directory' }) => {
         } catch (error) {
             console.error("Failed to fetch drivers", error);
         } finally {
-            setIsLoading(false);
+            // setIsLoading(false);
         }
     };
 
@@ -122,7 +122,7 @@ const DriverManagement = ({ view = 'directory' }) => {
 
     // --- Actions ---
 
-    const toggleDriverStatus = (id) => {
+    const toggleDriverStatus = (/* id */) => {
         // Placeholder for blocking logic
         alert("Blocking/Unblocking not implemented in backend yet.");
     };
@@ -130,22 +130,17 @@ const DriverManagement = ({ view = 'directory' }) => {
     const handleApprove = async (id) => {
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${API_URL}/drivers/${id}/verify`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({ action: 'approve' })
+            const res = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/drivers/${id}/verify`, { action: 'approve' }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
-            const data = await response.json();
 
-            if (data.success) {
+            if (res.data.success) {
                 // Refresh list
                 fetchDrivers();
                 setIsDocModalOpen(false);
             }
         } catch (error) {
+            console.error(error);
             alert("Approval failed");
         }
     };
@@ -153,22 +148,17 @@ const DriverManagement = ({ view = 'directory' }) => {
     const handleReject = async (id) => {
         try {
             const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${API_URL}/drivers/${id}/verify`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({ action: 'reject' })
+            const res = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/drivers/${id}/verify`, { action: 'reject' }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
-            const data = await response.json();
 
-            if (data.success) {
+            if (res.data.success) {
                 // Refresh list
                 fetchDrivers();
                 setIsDocModalOpen(false);
             }
         } catch (error) {
+            console.error(error);
             alert("Rejection failed");
         }
     };
@@ -199,6 +189,8 @@ const DriverManagement = ({ view = 'directory' }) => {
     };
 
     // --- Render Functions ---
+
+    // const handleViewDetails = (/* id */) => { ... }; // Removed as unused
 
     const renderDriverDetails = () => {
         const d = selectedDriver;

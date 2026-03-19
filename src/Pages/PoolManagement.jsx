@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Search, Filter, MapPin, Navigation, Clock, Users,
     CheckCircle, XCircle, AlertCircle, Eye, MoreVertical,
@@ -14,15 +14,11 @@ const PoolManagement = () => {
     const [filterType, setFilterType] = useState('all');
     const [filterStatus, setFilterStatus] = useState('all');
 
-    useEffect(() => {
-        fetchPools();
-    }, [filterType, filterStatus]);
-
-    const fetchPools = async () => {
+    const fetchPools = useCallback(async () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('adminToken');
-            const res = await axios.get('https://hybridride.onrender.com/api/admin/pools', {
+            const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/pools`, {
                 params: { type: filterType !== 'all' ? filterType : undefined, status: filterStatus !== 'all' ? filterStatus : undefined },
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -38,7 +34,11 @@ const PoolManagement = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filterType, filterStatus]);
+
+    useEffect(() => {
+        fetchPools();
+    }, [fetchPools]);
 
     const filteredPools = pools.filter(pool => {
         const matchesSearch =

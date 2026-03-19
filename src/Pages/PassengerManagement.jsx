@@ -6,13 +6,7 @@ import {
 import axios from 'axios';
 
 
-const initialPassengers = [
-    { id: 1, name: 'Alice Johnson', phone: '+1 (555) 123-4567', email: 'alice@example.com', status: 'active', joinDate: '2024-11-12', totalRides: 4, rating: 4.8, address: '123 Maple Ave, Springfield, IL', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150' },
-    { id: 2, name: 'Bob Smith', phone: '+1 (555) 987-6543', email: 'bob@example.com', status: 'blocked', joinDate: '2025-01-05', totalRides: 1, rating: 4.2, address: '456 Oak St, Metropolis, NY', avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=150' },
-    { id: 3, name: 'Charlie Brown', phone: '+1 (555) 246-8135', email: 'charlie@example.com', status: 'active', joinDate: '2024-12-20', totalRides: 2, rating: 5.0, address: '789 Pine Ln, Gotham, NJ', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150' },
-    { id: 4, name: 'Diana Prince', phone: '+1 (555) 369-2580', email: 'diana@example.com', status: 'active', joinDate: '2025-02-01', totalRides: 2, rating: 4.9, address: '321 Elm St, Smallville, KS', avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=150' },
-    { id: 5, name: 'Evan Wright', phone: '+1 (555) 159-7531', email: 'evan@example.com', status: 'active', joinDate: '2025-01-15', totalRides: 5, rating: 4.5, address: '654 Cedar Blvd, Star City, CA', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150' },
-];
+// const initialPassengers = [ ... ]; // Removed as unused
 
 const mockRides = [
     { id: 'R-101', passenger: 'Alice Johnson', driver: 'Mike Ross', date: '2025-02-10', time: '14:30', from: 'Central Station', to: 'Airport Terminal 1', amount: 25.50, status: 'completed' },
@@ -49,7 +43,7 @@ const PassengerManagement = ({ view = 'directory' }) => {
                 setError('No admin token found. Please sign in again.');
                 return;
             }
-            const res = await axios.get('https://hybridride.onrender.com/api/admin/passengers', {
+            const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/passengers`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.data.success) {
@@ -95,7 +89,7 @@ const PassengerManagement = ({ view = 'directory' }) => {
                 return;
             }
 
-            const res = await axios.put(`https://hybridride.onrender.com/api/admin/passengers/${id}/block`, {}, {
+            const res = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/admin/passengers/${id}/block`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -129,8 +123,8 @@ const PassengerManagement = ({ view = 'directory' }) => {
             const token = localStorage.getItem('adminToken');
 
             const [ridesRes, txRes] = await Promise.all([
-                axios.get(`https://hybridride.onrender.com/api/admin/passengers/${id}/rides`, { headers: { Authorization: `Bearer ${token}` } }),
-                axios.get(`https://hybridride.onrender.com/api/admin/passengers/${id}/transactions`, { headers: { Authorization: `Bearer ${token}` } })
+                axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/passengers/${id}/rides`, { headers: { Authorization: `Bearer ${token}` } }),
+                axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/passengers/${id}/transactions`, { headers: { Authorization: `Bearer ${token}` } })
             ]);
 
             if (ridesRes.data.success) {
@@ -167,7 +161,7 @@ const PassengerManagement = ({ view = 'directory' }) => {
     const renderPassengerDetails = () => {
         const p = selectedPassenger;
         const completedRides = passengerRides.filter(r => r.status === 'completed');
-        const cancelledRides = passengerRides.filter(r => r.status === 'cancelled');
+        // const cancelledRides = passengerRides.filter(r => r.status === 'cancelled'); // Removed as unused
 
         return (
             <div className="space-y-6">

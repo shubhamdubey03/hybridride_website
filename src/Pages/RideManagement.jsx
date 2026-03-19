@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -7,21 +7,8 @@ import {
     Filter, ChevronDown, Phone, Mail, Car, Calendar, DollarSign,
     Eye, Download, AlertCircle
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion removed as unused
 
-
-const mockLiveRides = [
-    { id: 'R-LIVE-001', passenger: 'Alice Johnson', driver: 'Mike Ross', status: 'ongoing', pickup: 'Central Station', dropoff: 'Airport Terminal 1', eta: '15 mins', location: { lat: 40.7128, lng: -74.0060 }, progress: 45 },
-    { id: 'R-LIVE-002', passenger: 'Bob Smith', driver: 'Harvey Specter', status: 'arriving', pickup: 'Downtown', dropoff: 'City Mall', eta: '5 mins', location: { lat: 40.7300, lng: -74.0000 }, progress: 10 },
-    { id: 'R-LIVE-003', passenger: 'Charlie Brown', driver: 'Louis Litt', status: 'ongoing', pickup: 'Office Park', dropoff: 'Home', eta: '22 mins', location: { lat: 40.7500, lng: -73.9800 }, progress: 60 },
-];
-
-const mockRideHistory = [
-    { id: 'R-HIST-101', passenger: 'Diana Prince', driver: 'Donna Paulsen', status: 'completed', date: '2025-02-10', time: '14:30', amount: 25.50, pickup: 'Museum', dropoff: 'Cafe' },
-    { id: 'R-HIST-102', passenger: 'Evan Wright', driver: 'Rachel Zane', status: 'cancelled', date: '2025-02-09', time: '09:15', amount: 0.00, pickup: 'Airport', dropoff: 'Hotel', cancelReason: 'Passenger requested' },
-    { id: 'R-HIST-103', passenger: 'Frank Castle', driver: 'Jessica Pearson', status: 'completed', date: '2025-02-08', time: '18:45', amount: 18.75, pickup: 'Gym', dropoff: 'Safehouse' },
-    { id: 'R-HIST-104', passenger: 'Gwen Stacy', driver: 'Peter Parker', status: 'upcoming', date: '2025-02-12', time: '08:00', amount: 12.00, pickup: 'School', dropoff: 'Lab' },
-];
 
 const mockDisputes = [
     { id: 'D-201', rideId: 'R-HIST-099', passenger: 'Harry Potter', driver: 'Severus Snape', issue: 'Overcharged', status: 'open', amount: 15.00, date: '2025-02-07' },
@@ -66,23 +53,16 @@ const RideManagement = ({ view = 'live' }) => {
     const [selectedRide, setSelectedRide] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [historyData, setHistoryData] = useState([]);
-    const [allRides, setAllRides] = useState([]); // Raw data from backend
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [disputesData, setDisputesData] = useState(mockDisputes);
     const [activeDropdown, setActiveDropdown] = useState(null);
 
-    useEffect(() => {
-        if (view === 'history' || view === 'live') {
-            fetchRides();
-        }
-    }, [view, activeTab]);
-
-    const fetchRides = async () => {
+    const fetchRides = useCallback(async () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('adminToken');
-            const res = await axios.get('https://hybridride.onrender.com/api/admin/rides', {
+            const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/rides`, {
                 params: { status: activeTab !== 'all' ? activeTab : undefined },
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -101,7 +81,6 @@ const RideManagement = ({ view = 'live' }) => {
                     fullData: ride
                 }));
                 setHistoryData(formattedRides);
-                setAllRides(res.data.data);
             } else {
                 setError(res.data.message);
             }
@@ -111,7 +90,13 @@ const RideManagement = ({ view = 'live' }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [activeTab]);
+
+    useEffect(() => {
+        if (view === 'history' || view === 'live') {
+            fetchRides();
+        }
+    }, [view, fetchRides]);
 
     // Filter Logic
     const filteredHistory = historyData.filter(ride => {

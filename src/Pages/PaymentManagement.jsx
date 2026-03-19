@@ -14,7 +14,7 @@ import {
 // --- Mock Data ---
 
 const mockPayments = [];
-const mockWallets = [];
+// const mockWallets = []; // Removed as unused
 const mockWithdrawals = [];
 const mockRefunds = [];
 
@@ -47,7 +47,7 @@ const StatusBadge = ({ status }) => {
 };
 
 const PaymentManagement = ({ view = 'dashboard' }) => {
-    const [activeTab, setActiveTab] = useState('all');
+    // const [activeTab, setActiveTab] = useState('all'); // Removed as unused
     const [withdrawals, setWithdrawals] = useState(mockWithdrawals);
     const [refunds, setRefunds] = useState(mockRefunds);
     const [wallets, setWallets] = useState([]);
@@ -57,15 +57,15 @@ const PaymentManagement = ({ view = 'dashboard' }) => {
         totalPayouts: 0,
         netProfit: 0
     });
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true); // Removed as unused
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const token = localStorage.getItem('adminToken');
                 const [finRes, walletRes] = await Promise.all([
-                    axios.get('https://hybridride.onrender.com/api/admin/financial-overview', { headers: { Authorization: `Bearer ${token}` } }),
-                    axios.get('https://hybridride.onrender.com/api/admin/driver-wallets', { headers: { Authorization: `Bearer ${token}` } })
+                    axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/financial-overview`, { headers: { Authorization: `Bearer ${token}` } }),
+                    axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/driver-wallets`, { headers: { Authorization: `Bearer ${token}` } })
                 ]);
 
                 if (finRes.data.success) {
@@ -77,7 +77,7 @@ const PaymentManagement = ({ view = 'dashboard' }) => {
             } catch (err) {
                 console.error('Failed to fetch data:', err);
             } finally {
-                setLoading(false);
+                // setLoading(false);
             }
         };
 

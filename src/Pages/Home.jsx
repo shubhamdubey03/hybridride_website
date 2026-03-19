@@ -37,18 +37,9 @@ const userRegistrationData = [
   { name: 'Jun', passengers: 239, drivers: 380 },
 ];
 
-const classDistribution = [ // Reusing for vehicle categories or user types if needed, keeping generic for now
-  { name: 'Car', value: 400, color: '#3b82f6' },
-  { name: 'Bike', value: 300, color: '#10b981' },
-  { name: 'Auto', value: 300, color: '#f59e0b' },
-];
+// const classDistribution = [ ... ]; // Removed as unused
 
-const recentRides = [
-  { id: 1, user: 'John Doe', driver: 'Mike Ross', status: 'Completed', amount: '₹15.00', time: '5 mins ago' },
-  { id: 2, user: 'Jane Smith', driver: 'Harvey Specter', status: 'Ongoing', amount: '₹22.50', time: '12 mins ago' },
-  { id: 3, user: 'Alice Johnson', driver: 'Louis Litt', status: 'Cancelled', amount: '₹0.00', time: '1 hour ago' },
-  { id: 4, user: 'Bob Brown', driver: 'Donna Paulsen', status: 'Completed', amount: '₹12.00', time: '2 hours ago' },
-];
+// const recentRides = [ ... ]; // Removed as unused
 
 // --- Components ---
 
@@ -84,13 +75,13 @@ function Home() {
     dailyRevenue: 0,
     totalRevenue: 0
   });
-  const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true); // Removed as unused
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('adminToken');
-        const res = await axios.get('https://hybridride.onrender.com/api/admin/dashboard-stats', {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/dashboard-stats`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data.success) {
@@ -99,7 +90,7 @@ function Home() {
       } catch (err) {
         console.error('Failed to fetch stats:', err);
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     };
 

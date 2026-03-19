@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Car, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
+import axios from 'axios';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -41,15 +42,14 @@ const Login = () => {
         }
 
         try {
-            const response = await fetch('https://hybridride.onrender.com/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
+            const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/admin/login`, {
+                email: trimmedEmail,
+                password: trimmedPassword
             });
 
-            const data = await response.json();
+            const data = res.data; // Axios automatically parses JSON
 
-            if (response.ok) {
+            if (res.status === 200) { // Check for successful status code
                 if (data.data.role !== 'admin') {
                     setError('Access denied. Admin privileges required.');
                     return;
@@ -62,6 +62,7 @@ const Login = () => {
                 setError(data.message || 'Login failed');
             }
         } catch (err) {
+            console.error(err);
             setError('Network error. Is the server running?');
         } finally {
             setIsLoading(false);

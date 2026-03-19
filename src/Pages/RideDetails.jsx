@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+// motion removed to satisfy linter
 import {
     ArrowLeft, MapPin, Calendar, Clock, CreditCard, User,
     Phone, Mail, ShieldAlert, Download, Star, Car, Ban, Check, Unlock,
     AlertCircle
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 const RideDetails = () => {
     const { rideId } = useParams();
@@ -17,15 +17,11 @@ const RideDetails = () => {
     const [error, setError] = useState(null);
     const [notification, setNotification] = useState(null);
 
-    useEffect(() => {
-        fetchRideDetails();
-    }, [rideId]);
-
-    const fetchRideDetails = async () => {
+    const fetchRideDetails = useCallback(async () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('adminToken');
-            const res = await axios.get(`https://hybridride.onrender.com/api/admin/rides/${rideId}`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/rides/${rideId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -87,7 +83,11 @@ const RideDetails = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [rideId]);
+
+    useEffect(() => {
+        fetchRideDetails();
+    }, [fetchRideDetails]);
 
     const showNotification = (message, type = 'success') => {
         setNotification({ message, type });
@@ -124,25 +124,79 @@ const RideDetails = () => {
         }
     };
 
+    if (loading) {
+        return (
+            <div className="space-y-6 relative">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 hover:text-slate-900"
+                    >
+                        <ArrowLeft size={24} />
+                    </button>
+                    <h1 className="text-2xl font-bold text-slate-900">Ride Details</h1>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center text-slate-500">
+                    Loading ride details...
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="space-y-6 relative">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 hover:text-slate-900"
+                    >
+                        <ArrowLeft size={24} />
+                    </button>
+                    <h1 className="text-2xl font-bold text-slate-900">Ride Details</h1>
+                </div>
+                <div className="bg-red-50 text-red-600 border border-red-200 rounded-xl p-6 flex items-center gap-3">
+                    <AlertCircle size={24} />
+                    <div>
+                        <h3 className="font-bold">Error</h3>
+                        <p className="text-sm">{error}</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!ride) {
+        return (
+            <div className="space-y-6 relative">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 hover:text-slate-900"
+                    >
+                        <ArrowLeft size={24} />
+                    </button>
+                    <h1 className="text-2xl font-bold text-slate-900">Ride Details</h1>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center text-slate-500">
+                    No ride details found.
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6 relative">
             {/* Notification Toast */}
             <div className="fixed top-6 right-6 z-50">
-                <motion.div
-                    initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                    animate={notification ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: -20, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                    className={`pointer-events-none ${notification ? 'pointer-events-auto' : ''}`}
-                >
-                    {notification && (
-                        <div className="bg-slate-900/90 backdrop-blur-md text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-slate-700/50">
-                            <div className="p-1 bg-green-500/20 rounded-full">
-                                <Check size={16} className="text-green-400" />
-                            </div>
-                            <span className="font-medium text-sm">{notification.message}</span>
+                {notification && (
+                    <div className="bg-slate-900/90 backdrop-blur-md text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-slate-700/50">
+                        <div className="p-1 bg-green-500/20 rounded-full">
+                            <Check size={16} className="text-green-400" />
                         </div>
-                    )}
-                </motion.div>
+                        <span className="font-medium text-sm">{notification.message}</span>
+                    </div>
+                )}
             </div>
 
             {/* Header */}

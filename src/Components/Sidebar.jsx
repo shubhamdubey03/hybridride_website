@@ -1,13 +1,13 @@
-
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Users, GraduationCap, School, Banknote,
     CalendarCheck, Settings, LogOut, ChevronDown, ChevronRight,
     UserCog, Building2, UsersRound, FileText, CreditCard, Key, ClipboardList,
-    ShieldCheck, Bell, Activity, UserPlus, Shield, Mail, Calendar, MapPin, List, Car, AlertCircle, User
+    ShieldCheck, Bell, Activity, UserPlus, Shield, Mail, Calendar, MapPin, List, Car, AlertCircle, User,
+    X, Search, Filter, MoreVertical
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
     const location = useLocation();
