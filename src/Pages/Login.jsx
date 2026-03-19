@@ -42,7 +42,12 @@ const Login = () => {
         }
 
         try {
-            const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/admin/login`, {
+            if (!import.meta.env.VITE_API_BASE_URL) {
+                setError('API Base URL is not configured. Please check environment variables.');
+                setIsLoading(false);
+                return;
+            }
+            const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
                 email: trimmedEmail,
                 password: trimmedPassword
             });
@@ -63,7 +68,11 @@ const Login = () => {
             }
         } catch (err) {
             console.error(err);
-            setError('Network error. Is the server running?');
+            if (err.response?.status === 404) {
+                setError('API endpoint not found (404). Please verify VITE_API_BASE_URL.');
+            } else {
+                setError('Network error. Is the server running?');
+            }
         } finally {
             setIsLoading(false);
         }

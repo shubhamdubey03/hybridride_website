@@ -88,6 +88,7 @@ const AddEventModal = ({ isOpen, onClose, onSave, eventToEdit }) => {
                                 type="date"
                                 name="date"
                                 required
+                                min={new Date().toISOString().split('T')[0]}
                                 value={formData.date}
                                 onChange={handleChange}
                                 className="w-full px-4 py-2 rounded-xl border text-slate-600 border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
