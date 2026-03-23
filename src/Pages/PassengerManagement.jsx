@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Search, Filter, MoreVertical, Ban, CheckCircle, Clock,
-    MapPin, IndianRupee, FileText, User, ChevronDown, Download, Eye
+    MapPin, IndianRupee, FileText, User, ChevronDown, Download, Eye, X
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -23,6 +23,25 @@ const mockTransactions = [
     { id: 'TX-503', passenger: 'Charlie Brown', type: 'Payment', amount: 15.00, date: '2025-02-08', method: 'Cash', status: 'success' },
 ];
 
+const Modal = ({ isOpen, onClose, title, children }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
+                <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                    <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+                        <X size={20} />
+                    </button>
+                </div>
+                <div className="p-6 overflow-y-auto">
+                    {children}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const PassengerManagement = ({ view = 'directory' }) => {
     const [passengers, setPassengers] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -30,6 +49,7 @@ const PassengerManagement = ({ view = 'directory' }) => {
     const [selectedPassenger, setSelectedPassenger] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [viewingImage, setViewingImage] = useState(null);
 
     useEffect(() => {
         fetchPassengers();
@@ -55,9 +75,9 @@ const PassengerManagement = ({ view = 'directory' }) => {
                     status: p.isBlocked ? 'blocked' : 'active',
                     joinDate: new Date(p.createdAt).toLocaleDateString(),
                     totalRides: 0, // Mock for now until history API is synced
-                    rating: p.ridePersonality?.rating || 5.0,
+                    rating: p.ratings?.average || 5.0,
                     address: p.address || 'Location Unavailable',
-                    avatar: p.profileImage || `https://ui-avatars.com/api/?name=${p.name}&background=random`
+                    avatar: p.profileImage ? `${import.meta.env.VITE_API_BASE_URL}${p.profileImage}` : `https://ui-avatars.com/api/?name=${p.name}&background=random`
                 }));
                 setPassengers(formatted);
             } else {
@@ -73,9 +93,10 @@ const PassengerManagement = ({ view = 'directory' }) => {
 
     // --- Search & Filter Logic ---
     const filteredPassengers = passengers.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.phone.includes(searchQuery) ||
-            p.email.toLowerCase().includes(searchQuery.toLowerCase());
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = (p.name || '').toLowerCase().includes(query) ||
+            (p.phone || '').includes(searchQuery) ||
+            (p.email || '').toLowerCase().includes(query);
         const matchesStatus = filterStatus === 'all' || p.status === filterStatus;
         return matchesSearch && matchesStatus;
     });
@@ -175,7 +196,7 @@ const PassengerManagement = ({ view = 'directory' }) => {
                 {/* Profile Card */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <div className="flex flex-col md:flex-row gap-6 items-start">
-                        <div className="h-32 w-32 rounded-full border-4 border-slate-100 overflow-hidden flex-shrink-0">
+                        <div className="h-32 w-32 rounded-full border-4 border-slate-100 overflow-hidden flex-shrink-0 cursor-pointer hover:border-blue-200 transition-colors" onClick={() => setViewingImage({ url: p.avatar, title: `${p.name}'s Profile` })}>
                             <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 space-y-4">
@@ -292,7 +313,7 @@ const PassengerManagement = ({ view = 'directory' }) => {
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
                                                     <div className={`font-medium text-sm ${tx.type === 'Refund' ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                                        {tx.type === 'Refund' ? '-' : '+'}₹{tx.amount.toFixed(2)}
+                                                        {tx.type === 'Refund' ? '-' : '+'}₹{(tx.amount || 0).toFixed(2)}
                                                     </div>
                                                     <div className="mt-1 flex justify-end"><StatusBadge status={tx.status} /></div>
                                                 </td>
@@ -508,28 +529,51 @@ const PassengerManagement = ({ view = 'directory' }) => {
         </div>
     );
 
-    if (selectedPassenger) {
-        return (
-            <div className="p-6">
-                {renderPassengerDetails()}
-            </div>
-        );
-    }
-
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-slate-900">
-                    {view === 'directory' && 'Passenger Directory'}
-                    {view === 'ride_history' && 'Passenger Ride History'}
-                    {view === 'transactions' && 'Payment & Refund History'}
-                </h1>
-                {/* Optional: Breadcrumbs or Actions */}
-            </div>
+            {selectedPassenger ? (
+                <div className="p-6">
+                    {renderPassengerDetails()}
+                </div>
+            ) : (
+                <>
+                    <div className="flex justify-between items-center">
+                        <h1 className="text-2xl font-bold text-slate-900">
+                            {view === 'directory' && 'Passenger Directory'}
+                            {view === 'ride_history' && 'Passenger Ride History'}
+                            {view === 'transactions' && 'Payment & Refund History'}
+                        </h1>
+                    </div>
+                    {view === 'directory' && renderDirectory()}
+                    {view === 'ride_history' && renderRideHistory()}
+                    {view === 'transactions' && renderTransactions()}
+                </>
+            )}
 
-            {view === 'directory' && renderDirectory()}
-            {view === 'ride_history' && renderRideHistory()}
-            {view === 'transactions' && renderTransactions()}
+            {/* Image Viewer Modal */}
+            <Modal
+                isOpen={!!viewingImage}
+                onClose={() => setViewingImage(null)}
+                title={viewingImage?.title || 'Profile View'}
+            >
+                <div className="flex flex-col items-center">
+                    <div className="w-full rounded-lg overflow-hidden border border-slate-200 shadow-inner bg-slate-50">
+                        <img
+                            src={viewingImage?.url}
+                            alt={viewingImage?.title}
+                            className="w-full h-auto object-contain max-h-[70vh]"
+                        />
+                    </div>
+                    <a
+                        href={viewingImage?.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+                    >
+                        <Download size={16} /> Open Original Image
+                    </a>
+                </div>
+            </Modal>
         </div>
     );
 };

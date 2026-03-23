@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
     Search, Filter, MoreVertical, Ban, CheckCircle, Clock,
     MapPin, DollarSign, FileText, User, ChevronDown, Download,
-    Plus, AlertTriangle, Star, X, Eye, ThumbsUp, ThumbsDown
+    Plus, AlertTriangle, Star, X, Eye, ThumbsUp, ThumbsDown, Upload
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import axios from 'axios';
@@ -70,6 +70,61 @@ const DriverManagement = ({ view = 'directory' }) => {
     const [isDocModalOpen, setIsDocModalOpen] = useState(false);
     const [selectedApplicant, setSelectedApplicant] = useState(null);
     const [selectedDriver, setSelectedDriver] = useState(null);
+    const [viewingImage, setViewingImage] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = React.useRef(null);
+    const [uploadType, setUploadType] = useState(null);
+
+    const handleUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file || !selectedApplicant) return;
+
+        const formData = new FormData();
+        formData.append('document', file);
+        formData.append('docType', uploadType);
+
+        try {
+            setIsUploading(true);
+            const token = localStorage.getItem('adminToken');
+            const res = await axios.post(
+                `${import.meta.env.VITE_API_BASE_URL}/api/admin/drivers/${selectedApplicant.id}/upload`,
+                formData,
+                {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }
+            );
+
+            if (res.data.success) {
+                // Refresh data
+                fetchDrivers();
+                // Update selectedApplicant to show new image immediately
+                const newDocPath = res.data.data.driverDetails.documents[uploadType];
+                setSelectedApplicant(prev => ({
+                    ...prev,
+                    documents: {
+                        ...prev.documents,
+                        [uploadType]: `${import.meta.env.VITE_API_BASE_URL}${newDocPath}`
+                    }
+                }));
+                alert(`${uploadType} uploaded successfully!`);
+            }
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert("Upload failed. Please try again.");
+        } finally {
+            setIsUploading(false);
+            setUploadType(null);
+            if (e.target) e.target.value = ''; // Reset input
+        }
+    };
+
+    const triggerUpload = (type) => {
+        setUploadType(type);
+        if (fileInputRef.current) fileInputRef.current.click();
+    };
 
     // Fetch Drivers
     React.useEffect(() => {
@@ -92,11 +147,12 @@ const DriverManagement = ({ view = 'directory' }) => {
                     email: d.email,
                     status: d.verificationStatus?.communityTrusted ? 'active' : 'pending', // Simplified status logic
                     vehicle: d.driverDetails?.vehicle?.model || 'Pending',
-                    rating: d.driverDetails?.ratings?.average || 5.0,
-                    totalEarnings: d.driverDetails?.earnings || 0,
+                    vehicleType: d.driverDetails?.vehicle?.type || 'CAR',
                     joinDate: new Date(d.createdAt).toLocaleDateString(),
                     address: 'Location Pending',
-                    avatar: d.profileImage || `https://ui-avatars.com/api/?name=${d.name}&background=random`,
+                    rating: d.ratings?.average || d.driverDetails?.ratings?.average || 5.0,
+                    totalEarnings: d.driverDetails?.earnings || 0,
+                    avatar: d.profileImage ? `${import.meta.env.VITE_API_BASE_URL}${d.profileImage}` : `https://ui-avatars.com/api/?name=${d.name}&background=random`,
                     driverDetails: d.driverDetails,
                     documents: d.driverDetails?.documents ? Object.fromEntries(
                         Object.entries(d.driverDetails.documents).map(([k, v]) => [k, `${import.meta.env.VITE_API_BASE_URL}${v}`])
@@ -115,7 +171,8 @@ const DriverManagement = ({ view = 'directory' }) => {
 
     // Filter Logic
     const filteredDrivers = drivers.filter(d => {
-        const matchesSearch = d.name.toLowerCase().includes(searchQuery.toLowerCase()) || d.phone.includes(searchQuery);
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = (d.name || '').toLowerCase().includes(query) || (d.phone || '').includes(searchQuery);
         const matchesStatus = filterStatus === 'all' || d.status === filterStatus;
         return matchesSearch && matchesStatus;
     });
@@ -210,7 +267,7 @@ const DriverManagement = ({ view = 'directory' }) => {
                 {/* Profile Card */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <div className="flex flex-col md:flex-row gap-6 items-start">
-                        <div className="h-32 w-32 rounded-full border-4 border-slate-100 overflow-hidden flex-shrink-0">
+                        <div className="h-32 w-32 rounded-full border-4 border-slate-100 overflow-hidden flex-shrink-0 cursor-pointer hover:border-blue-200 transition-colors" onClick={() => setViewingImage({ url: d.avatar, title: `${d.name}'s Profile` })}>
                             <img src={d.avatar} alt={d.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 space-y-4">
@@ -264,11 +321,11 @@ const DriverManagement = ({ view = 'directory' }) => {
                         <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><FileText size={18} className="text-blue-500" /> Verified Documents</h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                             {Object.entries(d.documents).map(([key, url]) => (
-                                <div key={key} className="group cursor-pointer">
+                                <div key={key} className="group cursor-pointer" onClick={() => setViewingImage({ url, title: key.replace(/([A-Z])/g, ' $1').trim() })}>
                                     <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden border border-slate-200 mb-2 relative">
                                         <img src={url} alt={key} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                                            <Eye className="text-white opacity-0 group-hover:opacity-100 drop-shadow-md" size={24} />
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                            <Eye className="text-white opacity-0 group-hover:opacity-100 drop-shadow-md" size={32} />
                                         </div>
                                     </div>
                                     <p className="text-xs font-medium text-slate-600 capitalize text-center">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
@@ -311,7 +368,7 @@ const DriverManagement = ({ view = 'directory' }) => {
                                                 <div className="text-xs text-slate-500">{ride.time} • {ride.passenger}</div>
                                             </td>
                                             <td className="px-4 py-3 text-right font-medium text-emerald-600 text-sm">
-                                                ₹{ride.amount.toFixed(2)}
+                                                ₹{(ride.amount || 0).toFixed(2)}
                                             </td>
                                         </tr>
                                     )) : (
@@ -353,7 +410,7 @@ const DriverManagement = ({ view = 'directory' }) => {
                                                 <div className="text-xs text-slate-500">{ride.time} • {ride.passenger}</div>
                                             </td>
                                             <td className="px-4 py-3 text-right font-medium text-slate-400 text-sm line-through">
-                                                ₹{ride.amount.toFixed(2)}
+                                                ₹{(ride.amount || 0).toFixed(2)}
                                             </td>
                                         </tr>
                                     )) : (
@@ -498,8 +555,12 @@ const DriverManagement = ({ view = 'directory' }) => {
                 <div key={applicant.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col gap-4">
                     <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
-                                {applicant.name.charAt(0)}
+                            <div className="h-12 w-12 rounded-full border border-slate-100 overflow-hidden bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
+                                {applicant.avatar && !applicant.avatar.includes('ui-avatars.com') ? (
+                                    <img src={applicant.avatar} alt={applicant.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    applicant.name.charAt(0)
+                                )}
                             </div>
                             <div>
                                 <h3 className="font-bold text-slate-900">{applicant.name}</h3>
@@ -537,13 +598,13 @@ const DriverManagement = ({ view = 'directory' }) => {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                    {earningsData.map(data => (
+                    {drivers.map(data => (
                         <tr key={data.id} className="hover:bg-slate-50 transition-colors">
-                            <td className="px-6 py-4 font-medium text-slate-900">{data.driver}</td>
-                            <td className="px-6 py-4 text-emerald-600 font-medium">₹{data.daily.toFixed(2)}</td>
-                            <td className="px-6 py-4 text-slate-600">₹{data.weekly.toFixed(2)}</td>
-                            <td className="px-6 py-4 text-slate-900 font-bold">₹{data.monthly.toFixed(2)}</td>
-                            <td className="px-6 py-4 text-slate-600">{data.rides}</td>
+                            <td className="px-6 py-4 font-medium text-slate-900">{data.name}</td>
+                            <td className="px-6 py-4 text-emerald-600 font-medium">₹{(data.totalEarnings || 0).toFixed(2)}</td>
+                            <td className="px-6 py-4 text-slate-600">₹0.00</td>
+                            <td className="px-6 py-4 text-slate-900 font-bold">₹{(data.totalEarnings || 0).toFixed(2)}</td>
+                            <td className="px-6 py-4 text-slate-600">-</td>
                             <td className="px-6 py-4">
                                 <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${data.rating >= 4.5 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
                                     {data.rating} ⭐
@@ -585,48 +646,55 @@ const DriverManagement = ({ view = 'directory' }) => {
     const tabs = [
         { id: 'directory', label: `Directory (${drivers.length})`, path: '/drivers' },
         { id: 'onboarding', label: `Onboarding (${onboardingList.length})`, path: '/drivers/onboarding' },
- 
-    
-    ];
 
-    if (selectedDriver) {
-        return (
-            <div className="p-6">
-                {renderDriverDetails()}
-            </div>
-        )
-    }
+
+    ];
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-2xl font-bold text-slate-900">Driver Management</h1>
-            </div>
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                onChange={handleUpload}
+                accept="image/*,.pdf"
+            />
+            {selectedDriver ? (
+                <div className="p-6">
+                    {renderDriverDetails()}
+                </div>
+            ) : (
+                <>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h1 className="text-2xl font-bold text-slate-900">Driver Management</h1>
+                    </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200">
-                {tabs.map(tab => {
-                    const isActive = location.pathname === tab.path;
-                    return (
-                        <Link
-                            key={tab.id}
-                            to={tab.path}
-                            className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors
-                                ${isActive
-                                    ? 'bg-blue-50 text-blue-600'
-                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                                }`}
-                        >
-                            {tab.label}
-                        </Link>
-                    );
-                })}
-            </div>
+                    {/* Navigation Tabs */}
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200">
+                        {tabs.map(tab => {
+                            const isActive = location.pathname === tab.path;
+                            return (
+                                <Link
+                                    key={tab.id}
+                                    to={tab.path}
+                                    className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors
+                                        ${isActive
+                                            ? 'bg-blue-50 text-blue-600'
+                                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                        }`}
+                                >
+                                    {tab.label}
+                                </Link>
+                            );
+                        })}
+                    </div>
 
-            {view === 'directory' && renderDirectory()}
-            {view === 'onboarding' && renderOnboarding()}
-            {view === 'earnings' && renderEarnings()}
-            {view === 'complaints' && renderComplaints()}
+                    {view === 'directory' && renderDirectory()}
+                    {view === 'onboarding' && renderOnboarding()}
+                    {view === 'earnings' && renderEarnings()}
+                    {view === 'complaints' && renderComplaints()}
+                </>
+            )}
 
             {/* Add Driver Modal */}
             <Modal isOpen={isAddDriverModalOpen} onClose={() => setIsAddDriverModalOpen(false)} title="Add New Driver">
@@ -662,8 +730,12 @@ const DriverManagement = ({ view = 'directory' }) => {
                     <div className="space-y-6">
                         {/* Applicant Header */}
                         <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                            <div className="h-12 w-12 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-xl">
-                                {selectedApplicant.name.charAt(0)}
+                            <div className="h-12 w-12 rounded-full border border-blue-200 overflow-hidden bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-xl">
+                                {selectedApplicant.avatar && !selectedApplicant.avatar.includes('ui-avatars.com') ? (
+                                    <img src={selectedApplicant.avatar} alt={selectedApplicant.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    selectedApplicant.name.charAt(0)
+                                )}
                             </div>
                             <div>
                                 <h4 className="font-bold text-slate-900">{selectedApplicant.name}</h4>
@@ -694,20 +766,36 @@ const DriverManagement = ({ view = 'directory' }) => {
                                     <span className="block text-slate-500 text-xs">Fuel Type</span>
                                     <span className="font-medium text-slate-900">{selectedApplicant.driverDetails?.vehicle?.fuelType || 'N/A'}</span>
                                 </div>
-                                <div>
-                                    <span className="block text-slate-500 text-xs">Seating Capacity</span>
-                                    <span className="font-medium text-slate-900">{selectedApplicant.driverDetails?.vehicle?.seatingCapacity || 'N/A'} Seats</span>
-                                </div>
-                                <div>
-                                    <span className="block text-slate-500 text-xs">Boot Space</span>
-                                    <span className="font-medium text-slate-900">{selectedApplicant.driverDetails?.vehicle?.bootSpace || 'N/A'} Liters</span>
-                                </div>
+                                {selectedApplicant.vehicleType !== 'BIKE' && (
+                                    <>
+                                        <div>
+                                            <span className="block text-slate-500 text-xs">Seating Capacity</span>
+                                            <span className="font-medium text-slate-900">{selectedApplicant.driverDetails?.vehicle?.seatingCapacity || 'N/A'} Seats</span>
+                                        </div>
+                                        <div>
+                                            <span className="block text-slate-500 text-xs">Boot Space</span>
+                                            <span className="font-medium text-slate-900">{selectedApplicant.driverDetails?.vehicle?.bootSpace || 'N/A'} Liters</span>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
 
-                        {/* Documents Section */}
                         <div>
-                            <h5 className="font-bold text-slate-700 mb-3 text-sm uppercase tracking-wide">Uploaded Documents</h5>
+                            <div className="flex justify-between items-center mb-3">
+                                <h5 className="font-bold text-slate-700 text-sm uppercase tracking-wide">Uploaded Documents</h5>
+                                <div className="flex gap-2">
+                                    {['aadharFront', 'aadharBack', 'licenseFront', 'licenseBack', 'rc', 'insurance'].filter(type => !selectedApplicant.documents[type]).map(type => (
+                                        <button 
+                                            key={type}
+                                            onClick={() => triggerUpload(type)}
+                                            className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold border border-blue-200 hover:bg-blue-100 uppercase"
+                                        >
+                                            + Upload {type.replace(/([A-Z])/g, ' $1')}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                             {Object.keys(selectedApplicant.documents).length === 0 ? (
                                 <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-300 text-slate-500 text-sm">
                                     No documents uploaded yet.
@@ -718,11 +806,22 @@ const DriverManagement = ({ view = 'directory' }) => {
                                         <div key={key} className="border border-slate-200 rounded-xl p-3 hover:border-blue-300 transition-colors cursor-pointer group bg-white shadow-sm">
                                             <div className="mb-2 flex justify-between items-center">
                                                 <span className="text-sm font-medium text-slate-700 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                                                <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity hover:underline flex items-center gap-1">
-                                                    <Eye size={12} /> View Full
-                                                </a>
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={() => triggerUpload(key)}
+                                                        className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <Upload size={10} /> Replace
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setViewingImage({ url, title: key.replace(/([A-Z])/g, ' $1').trim() })}
+                                                        className="text-[10px] text-slate-600 font-bold hover:underline flex items-center gap-1"
+                                                    >
+                                                        <Eye size={10} /> View
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden border border-slate-100 relative group-hover:shadow-md transition-shadow">
+                                            <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden border border-slate-100 relative group-hover:shadow-md transition-shadow" onClick={() => setViewingImage({ url, title: key.replace(/([A-Z])/g, ' $1').trim() })}>
                                                 <img src={url} alt={key} className="w-full h-full object-cover" />
                                             </div>
                                         </div>
@@ -747,6 +846,31 @@ const DriverManagement = ({ view = 'directory' }) => {
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* Image Viewer Modal */}
+            <Modal
+                isOpen={!!viewingImage}
+                onClose={() => setViewingImage(null)}
+                title={viewingImage?.title || 'Document View'}
+            >
+                <div className="flex flex-col items-center">
+                    <div className="w-full rounded-lg overflow-hidden border border-slate-200 shadow-inner bg-slate-50">
+                        <img
+                            src={viewingImage?.url}
+                            alt={viewingImage?.title}
+                            className="w-full h-auto object-contain max-h-[70vh]"
+                        />
+                    </div>
+                    <a
+                        href={viewingImage?.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+                    >
+                        <Download size={16} /> Open Original Image
+                    </a>
+                </div>
             </Modal>
         </div>
     );
