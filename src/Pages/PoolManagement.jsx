@@ -70,8 +70,8 @@ const PoolManagement = () => {
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-2">
-                <h1 className="text-2xl font-bold text-slate-900">Pool Management</h1>
-                <p className="text-slate-500 text-sm">Monitor and manage all City and Outstation pooling rides.</p>
+                <h1 className="text-2xl font-bold text-white">Pool Management</h1>
+                <p className="text-white text-sm">Monitor and manage all City and Outstation pooling rides.</p>
             </div>
 
             {/* Filters */}
