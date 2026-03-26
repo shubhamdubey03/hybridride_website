@@ -4,26 +4,18 @@ import { Loader2 } from 'lucide-react';
 
 const PageLoader = () => {
     return (
-        <div className="flex items-center justify-center h-full w-full min-h-[500px]">
-            {/* Outer Ring */}
-            <motion.div
-                className=" rounded-full neu-flat flex items-center justify-center"
-                animate={{
-                    boxShadow: [
-                        "5px 5px 10px #d1d9e6, -5px -5px 10px #ffffff",
-                        "inset 5px 5px 10px #d1d9e6, inset -5px -5px 10px #ffffff",
-                        "5px 5px 10px #d1d9e6, -5px -5px 10px #ffffff"
-                    ]
-                }}
-                transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                }}
-            >
-                {/* Inner Spinning Indicator */}
+        <div className="flex items-center justify-center h-full w-full min-h-[400px]">
+            <div className="relative flex items-center justify-center">
+                {/* Outer Glow Ring */}
                 <motion.div
-                    className="w-12 h-12 rounded-full border-4 border-blue-200 border-t-blue-600"
+                    className="absolute w-24 h-24 rounded-full bg-emerald-500/20 blur-xl"
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+                {/* Main Spinning Loader */}
+                <motion.div
+                    className="w-16 h-16 rounded-full border-[3px] border-emerald-500/10 border-t-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]"
                     animate={{ rotate: 360 }}
                     transition={{
                         duration: 1,
@@ -31,7 +23,10 @@ const PageLoader = () => {
                         ease: "linear"
                     }}
                 />
-            </motion.div>
+                
+                {/* Inner Static Icon/Dot */}
+                <div className="absolute w-2 h-2 rounded-full bg-emerald-400" />
+            </div>
         </div>
     );
 };

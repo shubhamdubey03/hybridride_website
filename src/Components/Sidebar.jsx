@@ -85,127 +85,131 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         },
     ];
 
-    // Recursive render function for menu items
-    const renderMenuItem = (item, level = 0) => {
-        // Level 0 = Top Level, Level 1 = Inside Group, Level 2 = Nested Group
-
-        // Case 1: Simple Link Item
-        if (!item.subMenus) {
-            const active = isActive(item.path);
-            return (
-                <li key={item.path || item.title}>
-                    <Link
-                        to={item.path}
-                        className={`flex items-center gap-4 rounded-xl transition-all duration-300
-              ${level === 0 ? 'px-4 py-3' : 'px-4 py-2 text-sm'}
-              ${level > 0 ? 'ml-0' : ''}
-              ${active
-                                ? 'neu-pressed text-blue-600 font-semibold'
-                                : 'text-navy-dark hover:text-blue-600'
-                            } `}
-                    >
-                        <item.icon size={level === 0 ? 20 : 16} className={active ? 'text-blue-600' : 'text-navy-dark'} />
-                        <span className="font-medium text-navy-dark">{item.title}</span>
-                        {active && <motion.div layoutId="active-dot" className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600" />}
-                    </Link>
-                </li>
-            );
-        }
-
-        // Case 2: Group Item (Collapsible)
-        const isExpanded = expandedGroups.includes(item.id);
-        const hasActiveChild = isGroupActive(item);
-        const GroupIcon = item.icon;
-
-        return (
-            <li key={item.id}>
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        toggleGroup(item.id);
-                    }}
-                    className={`w-full flex items-center justify-between rounded-xl transition-all duration-300
-            ${level === 0 ? 'px-4 py-3' : 'px-4 py-2 text-sm'}
-            ${(hasActiveChild || isExpanded) && level === 0 ? 'neu-pressed text-blue-600' : 'text-navy-dark hover:text-blue-600'}
-            ${level > 0 && isExpanded ? 'text-blue-600' : ''}
-`}
-                >
-                    <div className="flex items-center gap-3">
-                        <GroupIcon size={level === 0 ? 20 : 16} className={(hasActiveChild || isExpanded) && level === 0 ? 'text-blue-600' : 'text-navy-dark'} />
-                        <span className="font-medium text-navy-dark">{item.title}</span>
-                    </div>
-                    {isExpanded ? (
-                        <ChevronDown size={14} className="text-navy-dark opacity-50" />
-                    ) : (
-                        <ChevronRight size={14} className="text-navy-dark opacity-50" />
-                    )}
-                </button>
-
-                {/* Render Children */}
-                <AnimatePresence>
-                    {isExpanded && (
-                        <motion.ul
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className={`mt-2 space-y-1 ${level === 0 ? 'ml-4 pl-2 border-l border-white/50' : 'ml-4 pl-2 border-l border-white/50'} `}
-                        >
-                            {item.subMenus.map(subItem => renderMenuItem(subItem, level + 1))}
-                        </motion.ul>
-                    )}
-                </AnimatePresence>
-            </li>
-        );
-    };
-
-
-
     return (
         <motion.div
-            initial={{ x: -250 }}
-            animate={{ x: 0 }}
-            transition={{ type: "easeInOut", stiffness: 80 }}
-
-            className={`h-screen w-72 bg-[#eef2f6] flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 rounded-r-3xl neu-flat-sm ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-
-            <div className="p-6 border-b border-white/50 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-blue-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-                        <Bike size={24} strokeWidth={3} />
+            initial={{ x: -280 }}
+            animate={{ x: isOpen ? 0 : -280 }}
+            transition={{ type: "spring", damping: 20, stiffness: 100 }}
+            className="h-screen w-72 glass-panel flex flex-col fixed left-0 top-0 z-50 rounded-r-[40px] border-r border-white/10"
+        >
+            {/* Header / Logo Section */}
+            <div className="p-8 border-b border-white/5">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 grad-emerald rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 rotate-3">
+                            <Bike size={28} strokeWidth={2.5} />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-black text-white tracking-tight leading-none">SANCHARI</h1>
+                            <div className="flex items-center gap-1.5 mt-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <p className="text-[10px] font-bold text-emerald-500/80 uppercase tracking-[0.2em]">Partner Admin</p>
+                            </div>
+                        </div>
                     </div>
-                    <div >
-                        <h1 className="text-xl font-bold text-navy-dark leading-none">Sanchari</h1>
-                        {/* <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Management</p> */}
-                    </div>
+                    <button onClick={toggleSidebar} className="lg:hidden text-white/40 hover:text-white transition-colors">
+                        <X size={24} />
+                    </button>
                 </div>
-                <button onClick={toggleSidebar} className="lg:hidden text-navy-dark/40 hover:text-navy-dark">
-                    <ChevronRight className="rotate-180" size={24} />
-                </button>
             </div>
 
-            <nav className="flex-1 overflow-y-auto py-6 px-4 scrollbar-hide">
-                <ul className="space-y-2">
-                    {menuGroups.map(group => renderMenuItem(group, 0))}
-                </ul>
+            {/* Navigation Section */}
+            <nav className="flex-1 overflow-y-auto pt-8 px-6 space-y-8 scrollbar-hide">
+                {menuGroups.map((group) => (
+                    <div key={group.id} className="space-y-3">
+                        <p className="px-4 text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">
+                            {group.title}
+                        </p>
+                        <ul className="space-y-1.5">
+                            {group.type === 'single' ? (
+                                renderMenuItem(group, 0)
+                            ) : (
+                                group.subMenus.map(subItem => renderMenuItem(subItem, 1))
+                            )}
+                        </ul>
+                    </div>
+                ))}
             </nav>
 
-            <div className="p-4 border-t border-white/50">
-                <div
-                    className="neu-flat rounded-2xl p-3 flex items-center gap-3 cursor-pointer group hover:opacity-90 transition-opacity"
-                    onClick={handleLogout}
-                    title="Logout"
-                >
-                    <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold shadow-md">
-                        {adminUser?.name?.charAt(0)?.toUpperCase() || 'A'}
+            {/* Footer / Profile Section */}
+            <div className="p-6">
+                <div className="glass-card rounded-[32px] p-4 flex items-center gap-4 group">
+                    <div className="relative">
+                        <div className="h-12 w-12 rounded-2xl grad-indigo flex items-center justify-center text-white font-black text-lg shadow-inner">
+                            {adminUser?.name?.charAt(0)?.toUpperCase() || 'A'}
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-4 border-[#0f172a]" />
                     </div>
+                    
                     <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-bold text-navy-dark truncate">{adminUser?.name || 'Admin User'}</h4>
-                        <p className="text-xs text-navy-dark truncate">{adminUser?.email || 'admin@hybridride.com'}</p>
+                        <h4 className="text-sm font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
+                            {adminUser?.name || 'Super Admin'}
+                        </h4>
+                        <p className="text-[10px] font-medium text-white/40 truncate uppercase tracking-wider">
+                            {adminUser?.role || 'Authority'}
+                        </p>
                     </div>
-                    <LogOut size={18} className="text-navy-dark/40 group-hover:text-red-500 transition-colors" />
+
+                    <button 
+                        onClick={handleLogout}
+                        className="h-10 w-10 rounded-xl flex items-center justify-center text-white/20 hover:text-rose-500 hover:bg-rose-500/10 transition-all duration-300"
+                        title="Sign Out"
+                    >
+                        <LogOut size={20} />
+                    </button>
                 </div>
             </div>
         </motion.div>
+    );
+};
+
+// --- Updated Item Rendering for Glass Theme ---
+const renderMenuItem = (item, level = 0) => {
+    const location = useLocation();
+    const active = location.pathname === item.path;
+    const Icon = item.icon;
+
+    return (
+        <li key={item.path || item.title}>
+            <Link
+                to={item.path}
+                className={`
+                    group flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 relative overflow-hidden
+                    ${active 
+                        ? 'bg-emerald-500/10 border border-emerald-500/20 shadow-lg shadow-emerald-500/5' 
+                        : 'hover:bg-white/5 border border-transparent'
+                    }
+                `}
+            >
+                {/* Active Indicator Glow */}
+                {active && (
+                    <motion.div 
+                        layoutId="active-pill"
+                        className="absolute left-0 top-1/4 bottom-1/4 w-1 grad-emerald rounded-r-full"
+                    />
+                )}
+
+                <Icon 
+                    size={20} 
+                    className={`transition-colors duration-300 ${active ? 'text-emerald-500' : 'text-white/40 group-hover:text-white'}`}
+                    strokeWidth={active ? 2.5 : 2}
+                />
+                
+                <span className={`text-sm font-bold tracking-tight transition-colors duration-300 ${active ? 'text-white' : 'text-white/40 group-hover:text-white'}`}>
+                    {item.title}
+                </span>
+
+                {active && (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="ml-auto"
+                    >
+                        <ChevronRight size={14} className="text-emerald-500/50" />
+                    </motion.div>
+                )}
+            </Link>
+        </li>
     );
 };
 

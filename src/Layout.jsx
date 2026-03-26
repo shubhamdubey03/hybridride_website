@@ -22,11 +22,11 @@ const Layout = ({ children }) => {
     }, [location.pathname]);
 
     return (
-        <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
+        <div className="flex h-screen bg-[#020617] font-sans overflow-hidden">
             <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-            <div className={`flex-1 flex flex-col transition-all duration-300 h-full ${isSidebarOpen ? 'ml-72' : 'ml-0'}`}>
+            <div className={`flex-1 flex flex-col transition-all duration-[400ms] h-full ${isSidebarOpen ? 'ml-72' : 'ml-0'}`}>
                 <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-100 p-6 scroll-smooth relative">
+                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-transparent p-6 scroll-smooth relative">
                     <AnimatePresence mode="wait">
                         {isLoading ? (
                             <motion.div
@@ -34,16 +34,16 @@ const Layout = ({ children }) => {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="absolute inset-0 flex items-center justify-center bg-slate-100 z-10"
+                                className="absolute inset-0 flex items-center justify-center bg-[#020617]/50 backdrop-blur-md z-10"
                             >
                                 <PageLoader />
                             </motion.div>
                         ) : (
                             <motion.div
                                 key="content"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.4 }}
+                                initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
                             >
                                 {children}
                             </motion.div>

@@ -32,15 +32,16 @@ const revenueData = [
 
 const StatusBadge = ({ status }) => {
     const styles = {
-        success: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-        approved: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-        failed: 'bg-rose-100 text-rose-700 border-rose-200',
-        rejected: 'bg-rose-100 text-rose-700 border-rose-200',
-        pending: 'bg-amber-100 text-amber-700 border-amber-200',
-        refunded: 'bg-purple-100 text-purple-700 border-purple-200',
+        success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+        approved: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+        completed: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+        failed: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+        rejected: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+        pending: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+        refunded: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
     };
     return (
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${styles[status] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${styles[status] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>
             {status}
         </span>
     );
@@ -90,9 +91,7 @@ const PaymentManagement = ({ view = 'dashboard' }) => {
     const handleWithdrawalAction = async (id, newStatus) => {
         if (window.confirm(`Are you sure you want to ${newStatus} this request?`)) {
             try {
-                const token = localStorage.getItem('adminToken');
-                // Mocking the approval for now since we don't have a specific endpoint yet, 
-                // but we update local state to show it.
+                // Mock update for now
                 setWithdrawals(withdrawals.map(w => w._id === id ? { ...w, status: newStatus } : w));
             } catch (err) {
                 console.error(err);
@@ -100,45 +99,45 @@ const PaymentManagement = ({ view = 'dashboard' }) => {
         }
     };
 
-    // --- Views ---
-
     const renderPassengerWallets = () => (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                <h3 className="font-bold text-slate-900">Passenger Wallets</h3>
-                <div className="text-sm text-slate-500 font-medium">Total: {passengerWallets.length}</div>
+        <div className="glass-panel rounded-[40px] overflow-hidden border-white/5 shadow-2xl">
+            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
+                <div>
+                    <h3 className="text-xl font-black text-white tracking-tight">Passenger Wallets</h3>
+                    <p className="text-xs font-bold text-white/30 uppercase tracking-widest mt-1">User Balance Repository</p>
+                </div>
+                <div className="px-4 py-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                    <span className="text-xs font-black text-emerald-500 tracking-tighter uppercase">Total: {passengerWallets.length} Users</span>
+                </div>
             </div>
             <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                        <tr>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Passenger</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Phone</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Current Balance</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Level</th>
+                <table className="w-full text-left border-separate border-spacing-y-2 px-6 pb-6">
+                    <thead>
+                        <tr className="text-white/20">
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Passenger Details</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Contact</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Wallet Balance</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Tier</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="space-y-4">
                         {passengerWallets.map((wallet, idx) => (
-                            <tr key={wallet.passengerId || idx} className="hover:bg-slate-50">
-                                <td className="px-6 py-4">
-                                    <div className="text-sm font-medium text-slate-900">{wallet.passengerName}</div>
-                                    <div className="text-xs text-slate-500 font-mono">{wallet.passengerId}</div>
+                            <tr key={wallet.passengerId || idx} className="glass-card">
+                                <td className="px-6 py-5 first:rounded-l-3xl">
+                                    <div className="text-sm font-black text-white">{wallet.passengerName}</div>
+                                    <div className="text-[10px] text-white/30 font-bold font-mono tracking-tighter mt-0.5 uppercase">{wallet.passengerId}</div>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-slate-600">{wallet.phone || 'N/A'}</td>
-                                <td className="px-6 py-4 font-bold text-slate-900">₹{parseFloat(wallet.balance || 0).toLocaleString()}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${wallet.balance > 1000 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}`}>
-                                        {wallet.balance > 1000 ? 'Premium' : 'Regular'}
+                                <td className="px-6 py-5 text-sm font-bold text-white/60">{wallet.phone || '—'}</td>
+                                <td className="px-6 py-5">
+                                    <span className="text-lg font-black text-emerald-400">₹{parseFloat(wallet.balance || 0).toLocaleString()}</span>
+                                </td>
+                                <td className="px-6 py-5 last:rounded-r-3xl">
+                                    <span className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest ${wallet.balance > 1000 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-white/5 text-white/40 border border-white/10'}`}>
+                                        {wallet.balance > 1000 ? 'Premium' : 'Standard'}
                                     </span>
                                 </td>
                             </tr>
                         ))}
-                        {passengerWallets.length === 0 && (
-                            <tr>
-                                <td colSpan="4" className="px-6 py-10 text-center text-slate-400">No passenger wallets found</td>
-                            </tr>
-                        )}
                     </tbody>
                 </table>
             </div>
@@ -146,80 +145,82 @@ const PaymentManagement = ({ view = 'dashboard' }) => {
     );
 
     const renderDriverWalletsWithHistory = () => (
-        <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 bg-slate-50">
-                    <h3 className="font-bold text-slate-900">Driver Balance Overview</h3>
+        <div className="space-y-8">
+            <div className="glass-panel rounded-[40px] overflow-hidden border-white/5 shadow-2xl">
+                <div className="p-8 border-b border-white/5 bg-white/5">
+                    <h3 className="text-xl font-black text-white tracking-tight">Driver Capital Overview</h3>
+                    <p className="text-xs font-bold text-white/30 uppercase tracking-widest mt-1">Earnings & Liquid Balances</p>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="bg-slate-50 border-b border-slate-200">
-                            <tr>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Driver</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Current Balance</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Total Earned</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Withdrawals</th>
+                    <table className="w-full text-left border-separate border-spacing-y-2 px-6 pb-6">
+                        <thead>
+                            <tr className="text-white/20">
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Provider</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Platform Balance</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Lifetime Earnings</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Payouts</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody>
                             {wallets.map((wallet, idx) => (
-                                <tr key={wallet.driverId || idx} className="hover:bg-slate-50">
-                                    <td className="px-6 py-4">
-                                        <div className="text-sm font-medium text-slate-900">{wallet.driverName}</div>
-                                        <div className="text-xs text-slate-500">{wallet.driverId}</div>
+                                <tr key={wallet.driverId || idx} className="glass-card">
+                                    <td className="px-6 py-5 first:rounded-l-3xl">
+                                        <div className="text-sm font-black text-white">{wallet.driverName}</div>
+                                        <div className="text-[10px] text-white/30 font-bold tracking-tighter uppercase">{wallet.driverId}</div>
                                     </td>
-                                    <td className="px-6 py-4 font-bold text-blue-600">₹{parseFloat(wallet.balance || 0).toLocaleString()}</td>
-                                    <td className="px-6 py-4 text-sm text-emerald-600 font-bold">₹{parseFloat(wallet.totalEarned || 0).toLocaleString()}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-500">
-                                        {withdrawals?.filter(w => w.driver?._id === wallet.driverId).length || 0} Requests
+                                    <td className="px-6 py-5">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]" />
+                                            <span className="text-lg font-black text-sky-400">₹{parseFloat(wallet.balance || 0).toLocaleString()}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5 text-sm font-black text-emerald-400 italic">₹{parseFloat(wallet.totalEarned || 0).toLocaleString()}</td>
+                                    <td className="px-6 py-5 last:rounded-r-3xl">
+                                        <div className="flex items-center gap-2">
+                                            <ArrowUpRight size={14} className="text-white/20" />
+                                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                                                {withdrawals?.filter(w => w.driver?._id === wallet.driverId).length || 0} Request Cycle
+                                            </span>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
-                            {wallets.length === 0 && (
-                                <tr>
-                                    <td colSpan="4" className="px-6 py-10 text-center text-slate-400">No driver wallets found</td>
-                                </tr>
-                            )}
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 bg-slate-50">
-                    <h3 className="font-bold text-slate-900">Driver Withdrawal Requests</h3>
+            <div className="glass-panel rounded-[40px] overflow-hidden border-white/5 shadow-2xl">
+                <div className="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
+                    <div>
+                        <h3 className="text-xl font-black text-white tracking-tight">Withdrawal Vault</h3>
+                        <p className="text-xs font-bold text-white/30 uppercase tracking-widest mt-1">Provider Settlement Queue</p>
+                    </div>
+                    <Download size={20} className="text-white/20 cursor-pointer hover:text-white transition-colors" />
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="bg-slate-50 border-b border-slate-200">
-                            <tr>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">ID</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Driver</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Amount</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Fee (2%)</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Net Pay</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Method</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Date</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase text-right">Actions</th>
+                    <table className="w-full text-left border-separate border-spacing-y-2 px-6 pb-6">
+                        <thead>
+                            <tr className="text-white/20">
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">REQ ID</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Provider</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Net Payout</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Validation</th>
+                                <th className="px-6 py-4 text-xs text-right uppercase tracking-[0.2em]">Operation</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody>
                             {withdrawals.map(req => (
-                                <tr key={req._id} className="hover:bg-slate-50">
-                                    <td className="px-6 py-4 font-mono text-[10px] text-slate-400">{req._id.slice(-8)}</td>
-                                    <td className="px-6 py-4 text-sm font-medium text-slate-900">{req.driver?.name}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-900">₹{req.amount}</td>
-                                    <td className="px-6 py-4 text-sm text-rose-500">₹{req.fee}</td>
-                                    <td className="px-6 py-4 text-sm font-bold text-emerald-600">₹{req.netAmount}</td>
-                                    <td className="px-6 py-4"><StatusBadge status={req.status} /></td>
-                                    <td className="px-6 py-4"><span className="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold uppercase">{req.method}</span></td>
-                                    <td className="px-6 py-4 text-xs text-slate-500">{new Date(req.createdAt).toLocaleDateString()}</td>
-                                    <td className="px-6 py-4 text-right">
+                                <tr key={req._id} className="glass-card">
+                                    <td className="px-6 py-5 first:rounded-l-3xl font-mono text-[10px] font-black text-white/20">#{req._id.slice(-8).toUpperCase()}</td>
+                                    <td className="px-6 py-5 text-sm font-black text-white">{req.driver?.name}</td>
+                                    <td className="px-6 py-5 font-black text-emerald-400 italic">₹{req.netAmount}</td>
+                                    <td className="px-6 py-5"><StatusBadge status={req.status} /></td>
+                                    <td className="px-6 py-5 last:rounded-r-3xl text-right">
                                         {req.status === 'pending' && (
-                                            <div className="flex justify-end gap-2">
-                                                <button onClick={() => handleWithdrawalAction(req._id, 'approved')} className="p-1 px-2 bg-emerald-600 text-white text-[10px] font-bold rounded">APPROVE</button>
-                                                <button onClick={() => handleWithdrawalAction(req._id, 'rejected')} className="p-1 px-2 border border-slate-200 text-slate-600 text-[10px] font-bold rounded">REJECT</button>
+                                            <div className="flex justify-end gap-3">
+                                                <button onClick={() => handleWithdrawalAction(req._id, 'approved')} className="px-4 py-2 grad-emerald text-white text-[10px] font-black rounded-xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">SETTLE</button>
+                                                <button onClick={() => handleWithdrawalAction(req._id, 'rejected')} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white/40 text-[10px] font-black rounded-xl border border-white/5 transition-all">DENY</button>
                                             </div>
                                         )}
                                     </td>
@@ -233,68 +234,62 @@ const PaymentManagement = ({ view = 'dashboard' }) => {
     );
 
     const renderDashboard = () => (
-        <div className="space-y-6">
-            {/* KPI Cards - Platform Revenue E */}
-            <h3 className="font-bold text-slate-800 text-lg">Platform Revenue</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <div className="flex justify-between items-start mb-2">
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Online Collection</p>
-                        <CreditCard size={18} className="text-blue-500" />
+        <div className="space-y-10">
+            {/* KPI Cards - Platinum Style */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                    { label: 'Total Volume', value: financeData.totalCollection, icon: CreditCard, grad: 'grad-sky', color: 'text-sky-400' },
+                    { label: 'Platform Revenue', value: financeData.totalCommission, icon: DollarSign, grad: 'grad-emerald', color: 'text-emerald-400' },
+                    { label: 'Provider Payouts', value: financeData.totalPayouts, icon: Wallet, grad: 'grad-indigo', color: 'text-indigo-400' },
+                    { label: 'Net Liquidity', value: financeData.netProfit, icon: Activity, grad: 'grad-sky', color: 'text-white' }
+                ].map((kpi, i) => (
+                    <div key={i} className="glass-panel p-8 rounded-[40px] border-white/5 relative overflow-hidden group">
+                        <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl opacity-10 ${kpi.grad}`} />
+                        <div className="flex justify-between items-start mb-6">
+                            <div className={`p-4 rounded-2xl ${kpi.grad} text-white shadow-xl rotate-3 group-hover:rotate-0 transition-transform duration-500`}>
+                                <kpi.icon size={20} strokeWidth={2.5} />
+                            </div>
+                            <TrendIndicator />
+                        </div>
+                        <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2">{kpi.label}</p>
+                        <h3 className={`text-3xl font-black italic tracking-tighter ${kpi.color}`}>
+                            ₹{kpi.value.toLocaleString()}
+                        </h3>
                     </div>
-                    <h3 className="text-2xl font-bold text-slate-900">₹{financeData.totalCollection.toLocaleString()}</h3>
-                </div>
-
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <div className="flex justify-between items-start mb-2">
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Commission Earned</p>
-                        <DollarSign size={18} className="text-emerald-500" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-900">₹{financeData.totalCommission.toLocaleString()}</h3>
-                </div>
-
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <div className="flex justify-between items-start mb-2">
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Payouts to Drivers</p>
-                        <Wallet size={18} className="text-purple-500" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-900">₹{financeData.totalPayouts.toLocaleString()}</h3>
-                </div>
-
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <div className="flex justify-between items-start mb-2">
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Recent Withdrawals</p>
-                        <ArrowDownLeft size={18} className="text-rose-500" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-900">₹{withdrawals.reduce((sum, w) => sum + (w.status === 'completed' || w.status === 'approved' ? w.amount : 0), 0).toLocaleString()}</h3>
-                </div>
-
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-                    <div className="flex justify-between items-start mb-2">
-                        <p className="text-slate-300 text-xs font-bold uppercase tracking-wider">Net Profit</p>
-                        <Activity size={18} className="text-emerald-400" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-white">₹{financeData.netProfit.toLocaleString()}</h3>
-                </div>
+                ))}
             </div>
 
-            {/* Revenue Chart */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 className="font-bold text-slate-900 mb-6">Revenue Trend</h3>
-                <div className="h-80 w-full">
+            {/* Revenue Analytics Curve */}
+            <div className="glass-panel p-10 rounded-[48px] border-white/5 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 grad-emerald opacity-20" />
+                <div className="flex justify-between items-end mb-10">
+                    <div>
+                        <h3 className="text-2xl font-black text-white tracking-tight">Growth Velocity</h3>
+                        <p className="text-xs font-bold text-white/30 uppercase tracking-[0.3em] mt-1">Real-time Revenue Telemetry</p>
+                    </div>
+                    <div className="flex gap-2">
+                        {['1D', '1W', '1M', '1Y'].map(t => (
+                            <button key={t} className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all ${t === '1W' ? 'grad-emerald text-white' : 'bg-white/5 text-white/20 hover:text-white'}`}>{t}</button>
+                        ))}
+                    </div>
+                </div>
+                <div className="h-96 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={revenueData}>
                             <defs>
-                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                                <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
                                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                            <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                            <CartesianGrid strokeDasharray="10 10" vertical={false} stroke="rgba(255,255,255,0.03)" />
+                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 900 }} />
+                            <YAxis hide />
+                            <Tooltip 
+                                contentStyle={{ backgroundColor: '#0f172a', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }} 
+                                itemStyle={{ color: '#10b981', fontWeight: 900 }}
+                            />
+                            <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
@@ -303,99 +298,49 @@ const PaymentManagement = ({ view = 'dashboard' }) => {
     );
 
     const renderTransactions = () => (
-        <div className="space-y-6">
-            {/* Transaction Filters */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between gap-4">
-                <div className="relative w-72">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input type="text" placeholder="Search by ID, Name..." className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <div className="space-y-8">
+            <div className="flex justify-between items-center gap-6">
+                <div className="relative flex-1 group">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-emerald-500 transition-colors" size={20} />
+                    <input type="text" placeholder="Search Master Ledger..." className="w-full pl-16 pr-8 py-5 rounded-[24px] bg-white/5 border border-white/5 text-white font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-white/10" />
                 </div>
-                <div className="flex gap-2">
-                    <button className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium flex items-center gap-2">
-                        <Filter size={16} /> Filter
-                    </button>
-                    <button className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 flex items-center gap-2">
-                        <Download size={16} /> Export
-                    </button>
-                </div>
+                <button className="h-16 px-8 glass-card border-white/10 rounded-[24px] text-white/60 font-black text-xs uppercase tracking-widest flex items-center gap-3">
+                    <Filter size={18} /> Filters
+                </button>
             </div>
 
-            {/* Payments Table - A */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                    <h3 className="font-bold text-slate-900">Recent Payments</h3>
-                </div>
-                <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                        <tr>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Description</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">User</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Role</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Date</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Amount</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Type</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {transactions.map((tx, idx) => (
-                            <tr key={tx._id || idx} className="hover:bg-slate-50">
-                                <td className="px-6 py-4 text-sm font-medium text-slate-900">{tx.description || 'Wallet Transaction'}</td>
-                                <td className="px-6 py-4">
-                                    <div className="text-sm font-medium text-slate-900">{tx.userName}</div>
-                                    <div className="text-[10px] text-slate-400 font-mono">{tx.userId}</div>
-                                </td>
-                                <td className="px-6 py-4 text-xs uppercase font-bold text-slate-500">{tx.userRole}</td>
-                                <td className="px-6 py-4 text-sm text-slate-500">{new Date(tx.timestamp).toLocaleString()}</td>
-                                <td className={`px-6 py-4 font-bold ${tx.type === 'credit' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                    {tx.type === 'credit' ? '+' : '-'}₹{tx.amount.toFixed(2)}
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${tx.type === 'credit' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                                        {tx.type}
-                                    </span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Refund Management - D */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 bg-slate-50">
-                    <h3 className="font-bold text-slate-900">Refund Management</h3>
+            <div className="glass-panel rounded-[40px] overflow-hidden border-white/5 shadow-2xl">
+                <div className="p-8 border-b border-white/5 bg-white/5">
+                    <h3 className="text-xl font-black text-white tracking-tight">Ledger Operations</h3>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="bg-slate-50 border-b border-slate-200">
-                            <tr>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Refund ID</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Ride/Payment ID</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Passenger</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Reason</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Refund Amount</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase text-right">Date</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase text-right">Actions</th>
+                    <table className="w-full text-left border-separate border-spacing-y-2 px-6 pb-6">
+                        <thead>
+                            <tr className="text-white/20">
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Transaction</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">User Origin</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Timestamp</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Amount</th>
+                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em]">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
-                            {refunds.map(refund => (
-                                <tr key={refund.id} className="hover:bg-slate-50">
-                                    <td className="px-6 py-4 font-mono text-xs text-slate-600">{refund.id}</td>
-                                    <td className="px-6 py-4 font-mono text-xs text-blue-600">{refund.paymentId}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-900">{refund.passenger}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-600">{refund.reason}</td>
-                                    <td className="px-6 py-4 font-medium text-rose-600">₹{refund.amount.toFixed(2)}</td>
-                                    <td className="px-6 py-4"><StatusBadge status={refund.status} /></td>
-                                    <td className="px-6 py-4 text-xs text-slate-500 text-right">{refund.date}</td>
-                                    <td className="px-6 py-4 text-right">
-                                        {refund.status === 'pending' && (
-                                            <div className="flex justify-end gap-2">
-                                                <button onClick={() => handleRefundAction(refund.id, 'approved')} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded"><CheckCircle size={18} /></button>
-                                                <button onClick={() => handleRefundAction(refund.id, 'rejected')} className="p-1.5 text-rose-600 hover:bg-rose-50 rounded"><XCircle size={18} /></button>
-                                            </div>
-                                        )}
+                        <tbody>
+                            {transactions.map((tx, idx) => (
+                                <tr key={tx._id || idx} className="glass-card hover:border-emerald-500/30">
+                                    <td className="px-6 py-5 first:rounded-l-3xl">
+                                        <div className="text-sm font-black text-white">{tx.description || 'Wallet Logic'}</div>
+                                        <div className="text-[10px] text-white/20 font-bold uppercase tracking-widest mt-0.5">{tx.userRole}</div>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <div className="text-sm font-bold text-white/80">{tx.userName}</div>
+                                        <div className="text-[9px] font-mono text-white/20 uppercase">ID: {tx.userId?.slice(-6)}</div>
+                                    </td>
+                                    <td className="px-6 py-5 text-[11px] font-black text-white/40">{new Date(tx.timestamp).toLocaleString()}</td>
+                                    <td className={`px-6 py-5 font-black italic text-lg ${tx.type === 'credit' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                        {tx.type === 'credit' ? '+' : '-'}₹{tx.amount.toFixed(2)}
+                                    </td>
+                                    <td className="px-6 py-5 last:rounded-r-3xl">
+                                        <div className={`w-3 h-3 rounded-full ${tx.type === 'credit' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'}`} />
                                     </td>
                                 </tr>
                             ))}
@@ -407,29 +352,32 @@ const PaymentManagement = ({ view = 'dashboard' }) => {
     );
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col gap-2">
-                <h1 className="text-2xl font-bold text-slate-900 uppercase">
-                    {view === 'dashboard' && 'Financial Overview'}
-                    {view === 'transactions' && 'Transactions & Refunds'}
-                    {view === 'driver-wallets' && 'Driver Wallets & Withdrawals'}
-                    {view === 'passenger-wallets' && 'Passenger Wallets'}
-                    {view === 'commissions' && 'Commission Settings'}
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-700">
+            <div className="flex flex-col gap-2 mb-12">
+                <h1 className="text-5xl font-black text-white tracking-tighter uppercase italic">
+                    {view === 'dashboard' && 'Neural Financial Engine'}
+                    {view === 'transactions' && 'Ledger Records'}
+                    {view === 'driver-wallets' && 'Capital Distribution'}
+                    {view === 'passenger-wallets' && 'Network Credit'}
                 </h1>
+                <div className="h-1.5 w-32 grad-emerald rounded-full" />
             </div>
 
             {view === 'dashboard' && renderDashboard()}
             {view === 'transactions' && renderTransactions()}
             {view === 'driver-wallets' && renderDriverWalletsWithHistory()}
             {view === 'passenger-wallets' && renderPassengerWallets()}
-
-            {view === 'commissions' && (
-                <div className="bg-white p-12 text-center rounded-xl border border-slate-200 border-dashed">
-                    <h3 className="text-lg font-bold text-slate-900">Commission Configuration</h3>
-                </div>
-            )}
         </div>
     );
 };
 
+const TrendIndicator = () => (
+    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+        <TrendingUp size={12} className="text-emerald-400" />
+        <span className="text-[10px] font-black text-emerald-400">+12.4%</span>
+    </div>
+);
+
 export default PaymentManagement;
+
+
