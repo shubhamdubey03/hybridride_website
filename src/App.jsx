@@ -42,7 +42,7 @@ function App() {
 
                 <Route path='/drivers' element={<DriverManagement view="directory" />} />
                 <Route path='/drivers/onboarding' element={<DriverManagement view="onboarding" />} />
-                <Route path='/drivers/earnings' element={<DriverManagement view="earnings" />} />
+                {/* <Route path='/drivers/earnings' element={<DriverManagement view="earnings" />} /> */}
                 <Route path='/drivers/complaints' element={<DriverManagement view="complaints" />} />
 
                 {/* Ride Management */}

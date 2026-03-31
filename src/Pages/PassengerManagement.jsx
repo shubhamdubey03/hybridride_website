@@ -77,7 +77,12 @@ const PassengerManagement = ({ view = 'directory' }) => {
                     totalRides: 0, // Mock for now until history API is synced
                     rating: p.ratings?.average || 5.0,
                     address: p.address || 'Location Unavailable',
-                    avatar: p.profileImage ? `${import.meta.env.VITE_API_BASE_URL}${p.profileImage}` : `https://ui-avatars.com/api/?name=${p.name}&background=random`
+                    avatar: p.profileImage ? (() => {
+                        if (p.profileImage.startsWith('http')) return p.profileImage;
+                        const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '');
+                        const filePath = p.profileImage.startsWith('/') ? p.profileImage : `/${p.profileImage}`;
+                        return `${baseUrl}${filePath}`;
+                    })() : `https://ui-avatars.com/api/?name=${p.name}&background=random`
                 }));
                 setPassengers(formatted);
             } else {
